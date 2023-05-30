@@ -26,9 +26,38 @@ class TodoList {
         // 주어진 CSS 선택자와 일치하는 요소를 찾을 때까지, 
         // 자기 자신을 포함해 위쪽(부모 방향, 문서 루트까지)으로 문서 트리
         const btn = target.closest('button');
+        if(!btn) {
+            return;
+        }
         if(btn.matches('#delete-btn')) { //querySelector
             this.deleteTodo(target);
+        } else if(btn.matches('#edit-btn')) {
+            this.editTodo(target);
+        } else if(btn.matches('#save-btn')) {
+            this.saveTodo(target);
+        } else if(btn.matches('#complete-btn')) {
+            this.completeTodo(target);
         }
+    }
+
+    completeTodo(target) {
+        const todoDiv = target.closest('.todo');
+        todoDiv.classList.toggle('done');
+    }
+
+    saveTodo(target) {
+        const todoDiv = target.closest('.todo');
+        todoDiv.classList.remove('edit');
+        const todoInputEl = todoDiv.querySelector('input');
+        todoInputEl.readOnly = true;
+    }
+
+    editTodo(target) {
+        const todoDiv = target.closest('.todo');
+        const todoInputEl = todoDiv.querySelector('input');
+        todoInputEl.readOnly = false;
+        todoInputEl.focus();
+        todoDiv.classList.add('edit');
     }
 
     deleteTodo(target) {
