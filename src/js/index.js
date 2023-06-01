@@ -40,12 +40,36 @@ class Router {
     }
 }
 
+class Storage {
+    saveTodo(id, todoContent) {
+        const todosData = this.getTodos();
+        todosData.push({id, content: todoContent, status: 'TODO'});
+        localStorage.setItem('todos', JSON.stringify(todosData));
+    }
+
+    editTodo() {
+    }
+
+    deleteTodo() {
+    }
+
+    getTodos() {
+        return localStorage.getItem("todos") === null ? [] : JSON.parse(localStorage.getItem('todos'));
+    }
+}
+
 
 class TodoList {
-    constructor() {
+    constructor(storage) {
         this.assignElement();
         this.addEvent();
+        this.initStorage(storage);
+        this.loadSavedData();
     }
+
+    initStorage(storage) {
+        this.storage = storage;
+    }   
 
     assignElement() {
         this.inputContainerEl = document.getElementById("input-container");
@@ -147,13 +171,27 @@ class TodoList {
             return;
         }
 
-        this.createTodoElement(this.todoInputEl.value);
+        const id = Date.now();
+        this.storage.saveTodo(id, this.todoInputEl.value);
+        this.createTodoElement(id, this.todoInputEl.value);
     }
 
-    createTodoElement(value) {
+    loadSavedData() {
+        const todosData = this.storage.getTodos();
+        for(const todoData of todosData) {
+            const {id, content, status} = todoData;
+            this.createTodoElement(id, content, this.todoInputEl.value);
+        }
+    }
+
+    createTodoElement(id, value, status = null) {
         const todoDiv = document.createElement("div");
         todoDiv.classList.add("todo");
+        if(status === 'DONE') {
+            todoDiv.classList.add('done');
+        }
 
+        todoDiv.dataset.id = id;
         const todoContent = document.createElement("input");
         todoContent.value = value;
         todoContent.readOnly = true;
@@ -192,7 +230,7 @@ class TodoList {
 document.addEventListener("DOMContentLoaded", () => {
     console.log('DOMContentLoaded');
     const router = new Router();
-    const todoList = new TodoList();
+    const todoList = new TodoList(new Storage());
     const routeCallback = (status) => () => {
         todoList.filterTodo(status);
         document.querySelector(`input[type='radio'][value='${status}']`
