@@ -47,10 +47,26 @@ class Storage {
         localStorage.setItem('todos', JSON.stringify(todosData));
     }
 
-    editTodo() {
+    editTodo(id, todoContent, status = 'TODO') {
+        const todosData = this.getTodos();
+        // == 2개만 사용, todo.id는 string 타입. 인자 id는 number타입
+        // === 3개 사용하면 type 비교까지 해서 못찾음
+        const todoIndex = todosData.findIndex((todo) => todo.id == id);
+        const targetTodoData = todosData[todoIndex];
+        const editedTodoData = 
+            todoContent === '' 
+                ? {...targetTodoData, status} 
+                : {...targetTodoData, content: todoContent};
+        todosData.splice(todoIndex, 1, editedTodoData);
+        localStorage.setItem('todos', JSON.stringify(todosData));
     }
 
-    deleteTodo() {
+    deleteTodo(id) {
+        const todosData = this.getTodos();
+        // == 2개만 사용, todo.id는 string 타입. 인자 id는 number타입
+        // === 3개 사용하면 type 비교까지 해서 못찾음
+        todosData.splice(todosData.findIndex(todo => todo.id == id), 1);
+        localStorage.setItem('todos', JSON.stringify(todosData));
     }
 
     getTodos() {
@@ -60,6 +76,16 @@ class Storage {
 
 
 class TodoList {
+    storage;
+    inputContainerEl;
+    inputAreaEl;
+    todoInputEl;
+    addBtnEl;
+    todoContainerEl;
+    todoListEl;
+    radioAreaEl;
+    filterRadioBtnEls;
+
     constructor(storage) {
         this.assignElement();
         this.addEvent();
@@ -140,6 +166,8 @@ class TodoList {
     completeTodo(target) {
         const todoDiv = target.closest('.todo');
         todoDiv.classList.toggle('done');
+        const { id } = todoDiv.dataset;
+        this.storage.editTodo(id, '', todoDiv.classList.contains('done') ? 'DONE' : 'TODO');
     }
 
     saveTodo(target) {
@@ -147,6 +175,8 @@ class TodoList {
         todoDiv.classList.remove('edit');
         const todoInputEl = todoDiv.querySelector('input');
         todoInputEl.readOnly = true;
+        const { id } = todoDiv.dataset;
+        this.storage.editTodo(id, todoInputEl.value);
     }
 
     editTodo(target) {
@@ -163,6 +193,7 @@ class TodoList {
             todoDiv.remove();
         }); 
         todoDiv.classList.add('delete');
+        this.storage.deleteTodo(todoDiv.dataset.id);
     }
 
     onClickAddBtn() {
